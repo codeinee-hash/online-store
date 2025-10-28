@@ -1,5 +1,5 @@
 <script setup>
-import ProductCard from '@/components/product-card.vue';
+import ProductCard from './product-card.vue';
 
 const handleClick = () => {
   alert('clicked');

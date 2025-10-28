@@ -1,6 +1,6 @@
 <script setup>
-import AppHeader from '@/components/header.vue';
-import ProductCardList from '@/components/product-card-list.vue';
+import { AppHeader } from '@/features/header/index.js';
+import { ProductCardList } from '@/features/products/index.js';
 </script>
 
 <template>
