@@ -1,9 +1,11 @@
 <script setup>
-import { AppHeader } from '@/features/header/index.js';
-import { ProductCardList } from '@/features/products/index.js';
+import { AppHeader } from '@/features/header';
+import { ProductCardList } from '@/features/products';
+import { SideSideDrawer } from '@/features/basket';
 </script>
 
 <template>
+  <side-side-drawer />
   <div class="w-4/5 m-auto bg-white rounded-xl shadow-xl mt-18 pb-16">
     <app-header />
 
