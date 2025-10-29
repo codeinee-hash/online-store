@@ -1,6 +1,37 @@
 <script setup>
 import { AppHeader } from '@/features/header';
 import { ProductCardList } from '@/features/products';
+import { onMounted, reactive, ref, watch } from 'vue';
+import { requester } from '@/shared/lib/axios.js';
+
+const products = ref([]);
+const filters = reactive({
+  sortBy: 'title',
+  searchQuery: '',
+});
+
+const fetchProducts = async () => {
+  try {
+    const params = {
+      sortBy: filters.sortBy,
+    };
+
+    if (filters.searchQuery) {
+      params.title = `*${filters.searchQuery}*`;
+    }
+
+    const { data } = await requester.get('products', { params });
+    products.value = data;
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+onMounted(fetchProducts);
+watch(filters, fetchProducts);
+
+const onChangeSelect = (e) => (filters.sortBy = e.target.value);
+const onChangeSearchInput = (e) => (filters.searchQuery = e.target.value);
 </script>
 
 <template>
@@ -9,19 +40,23 @@ import { ProductCardList } from '@/features/products';
     <app-header />
 
     <div class="flex flex-col px-14">
-      <div class="flex justify-between items-center">
+      <div class="flex justify-between items-center mb-10">
         <h2 class="text-3xl font-bold my-10">Все кроссовки</h2>
 
         <div class="flex gap-4">
-          <select class="py-2 px-3 border border-gray-200 rounded-md outline-none">
-            <option value="">По названию</option>
-            <option value="">По цене (дешевые)</option>
-            <option value="">По цене (дорогие)</option>
+          <select
+            @change="onChangeSelect"
+            class="py-2 px-3 border border-gray-200 rounded-md outline-none"
+          >
+            <option value="name">По названию</option>
+            <option value="price">По цене (дешевые)</option>
+            <option value="-price">По цене (дорогие)</option>
           </select>
 
           <div class="relative">
             <img src="/search.svg" alt="search" class="absolute left-3.5 top-3" />
             <input
+              @input="onChangeSearchInput"
               type="text"
               placeholder="Поиск..."
               class="border border-gray-200 rounded-md pl-10 pr-4 py-2 outline-none focus:border-gray-400"
@@ -30,7 +65,7 @@ import { ProductCardList } from '@/features/products';
         </div>
       </div>
 
-      <product-card-list />
+      <product-card-list :products="products" />
     </div>
   </div>
 </template>
