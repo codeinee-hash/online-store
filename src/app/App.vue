@@ -4,7 +4,7 @@ import { ProductCardList } from '@/features/products';
 </script>
 
 <template>
-  <!--  <side-side-drawer />-->
+  <!--  <basket-side-drawer />-->
   <div class="w-4/5 m-auto bg-white rounded-xl shadow-xl mt-18 pb-16">
     <app-header />
 
