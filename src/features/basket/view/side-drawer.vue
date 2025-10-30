@@ -2,15 +2,41 @@
 import DrawerHead from './drawer-head.vue';
 import BasketCardList from './basket-card-list.vue';
 import InfoBlock from '@/shared/ui/info-block.vue';
+import { requester } from '@/shared/lib/axios.js';
+import { computed, inject, ref } from 'vue';
 
-defineProps({
+const isCreatingOrder = ref(false);
+const orderId = ref(null);
+
+const props = defineProps({
   totalPrice: Number,
-  vatPrice: Number,
-  buttonDisabled: Boolean,
-  isBasketEmpty: Boolean,
 });
 
-const emit = defineEmits(['createOrder']);
+const { cartItems } = inject('basketState');
+
+const isBasketEmpty = computed(() => cartItems.value.length === 0);
+const buttonDisabled = computed(() =>
+  isCreatingOrder.value ? true : cartItems.value.length === 0,
+);
+const vatPrice = computed(() => Math.round((props.totalPrice * 5) / 100));
+
+const createOrder = async () => {
+  try {
+    isCreatingOrder.value = true;
+    const { data } = await requester.post('orders', {
+      items: cartItems.value,
+      totalPrice: props.totalPrice,
+    });
+
+    cartItems.value = [];
+    orderId.value = data.id;
+    return data;
+  } catch (error) {
+    console.log(error);
+  } finally {
+    isCreatingOrder.value = false;
+  }
+};
 </script>
 
 <template>
@@ -18,11 +44,18 @@ const emit = defineEmits(['createOrder']);
     <div class="fixed w-96 h-full bg-white right-0 top-0 z-20 p-8">
       <drawer-head />
 
-      <div v-if="isBasketEmpty" class="h-full flex items-center">
+      <div v-if="isBasketEmpty || orderId" class="h-full flex items-center">
         <info-block
+          v-if="isBasketEmpty && !orderId"
           title="Корзина пустая"
           subtitle="Добавьте хотя бы одну пару кроссовок, чтобы сделать заказ."
           image="/package-icon.png"
+        />
+        <info-block
+          v-if="orderId"
+          title="Заказ оформлен!"
+          :subtitle="`Ваш заказ #${orderId} скоро будет передан курьерской доставке`"
+          image="/order-success-icon.png"
         />
       </div>
 
@@ -42,7 +75,7 @@ const emit = defineEmits(['createOrder']);
           </div>
           <button
             :disabled="buttonDisabled"
-            @click="() => emit('createOrder')"
+            @click="createOrder"
             class="w-full py-3 rounded-xl bg-lime-500 mt-2 text-white font-semibold disabled:bg-slate-300 transition active:-translate-y-1 cursor-pointer"
           >
             Оформить заказ
