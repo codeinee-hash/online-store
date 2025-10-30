@@ -1,14 +1,36 @@
 <script setup>
 import { AppHeader } from '@/features/header';
 import { ProductCardList } from '@/features/products';
+import { BasketSideDrawer } from '@/features/basket';
 import { onMounted, reactive, ref, watch } from 'vue';
 import { requester } from '@/shared/lib/axios.js';
 
+const drawerOpen = ref(false);
 const products = ref([]);
+
 const filters = reactive({
   sortBy: 'title',
   searchQuery: '',
 });
+
+const fetchFavoriteProducts = async () => {
+  try {
+    const { data } = await requester.get('favorites');
+    products.value = products.value.map((product) => {
+      const favorite = data.find((f) => f.productId === product.id);
+
+      if (!favorite) return product;
+
+      return {
+        ...product,
+        isFavorite: true,
+        favoriteId: favorite.id,
+      };
+    });
+  } catch (error) {
+    console.log(error);
+  }
+};
 
 const fetchProducts = async () => {
   try {
@@ -21,13 +43,38 @@ const fetchProducts = async () => {
     }
 
     const { data } = await requester.get('products', { params });
-    products.value = data;
+    products.value = data.map((product) => ({
+      ...product,
+      isAdded: false,
+      isFavorite: false,
+      favoriteId: null,
+    }));
   } catch (error) {
     console.log(error);
   }
 };
 
-onMounted(fetchProducts);
+const addToFavorite = async (item) => {
+  item.isFavorite = !item.isFavorite;
+
+  try {
+    if (!item.isFavorite) {
+      const { data } = await requester.post('favorites', { productId: item.id });
+      item.favoriteId = data.id;
+    } else {
+      await requester.delete(`favorites/${item.favoriteId}`);
+      item.favoriteId = null;
+    }
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+onMounted(async () => {
+  await fetchProducts();
+  await fetchFavoriteProducts();
+});
+
 watch(filters, fetchProducts);
 
 const onChangeSelect = (e) => (filters.sortBy = e.target.value);
@@ -35,7 +82,7 @@ const onChangeSearchInput = (e) => (filters.searchQuery = e.target.value);
 </script>
 
 <template>
-  <!--  <basket-side-drawer />-->
+  <basket-side-drawer v-if="drawerOpen" />
   <div class="w-4/5 m-auto bg-white rounded-xl shadow-xl mt-18 pb-16">
     <app-header />
 
@@ -65,7 +112,7 @@ const onChangeSearchInput = (e) => (filters.searchQuery = e.target.value);
         </div>
       </div>
 
-      <product-card-list :products="products" />
+      <product-card-list :products="products" @add-to-favorite="addToFavorite" />
     </div>
   </div>
 </template>

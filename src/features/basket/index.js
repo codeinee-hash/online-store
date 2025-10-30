@@ -1,1 +1,1 @@
-export { default as SideSideDrawer } from './view/side-drawer.vue';
+export { default as BasketSideDrawer } from './view/side-drawer.vue';
