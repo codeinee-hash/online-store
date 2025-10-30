@@ -6,6 +6,7 @@ import { requester } from '@/shared/lib/axios.js';
 import { debounce } from '@/shared/lib/debounce.js';
 
 const products = ref([]);
+const isPending = ref(false);
 const filters = reactive({
   sortBy: 'title',
   searchQuery: '',
@@ -55,6 +56,7 @@ const fetchFavoriteProducts = async () => {
 
 const fetchProducts = async () => {
   try {
+    isPending.value = true;
     const params = {
       sortBy: filters.sortBy,
     };
@@ -72,6 +74,8 @@ const fetchProducts = async () => {
     }));
   } catch (error) {
     console.log(error);
+  } finally {
+    isPending.value = false;
   }
 };
 
@@ -124,7 +128,12 @@ const onChangeSearchInput = debounce((e) => (filters.searchQuery = e.target.valu
     </div>
   </div>
 
+  <div v-if="isPending" class="w-full flex justify-center items-center py-20">
+    <span class="text-gray-500 text-lg animate-pulse">Загрузка...</span>
+  </div>
+
   <product-card-list
+    v-else
     :products="products"
     @add-to-favorite="addToFavorite"
     @add-to-cart="onClickAdd"
