@@ -2,41 +2,18 @@
 import DrawerHead from './drawer-head.vue';
 import BasketCardList from './basket-card-list.vue';
 import InfoBlock from '@/shared/ui/info-block.vue';
-import { requester } from '@/shared/lib/axios.js';
-import { computed, inject, ref } from 'vue';
-
-const isCreatingOrder = ref(false);
-const orderId = ref(null);
+import { inject } from 'vue';
+import { useBasket } from '../model/use-basket.js';
 
 const props = defineProps({
   totalPrice: Number,
 });
 
 const { cartItems } = inject('basketState');
-
-const isBasketEmpty = computed(() => cartItems.value.length === 0);
-const buttonDisabled = computed(() =>
-  isCreatingOrder.value ? true : cartItems.value.length === 0,
+const { orderId, isBasketEmpty, buttonDisabled, vatPrice, createOrder } = useBasket(
+  cartItems,
+  props.totalPrice,
 );
-const vatPrice = computed(() => Math.round((props.totalPrice * 5) / 100));
-
-const createOrder = async () => {
-  try {
-    isCreatingOrder.value = true;
-    const { data } = await requester.post('orders', {
-      items: cartItems.value,
-      totalPrice: props.totalPrice,
-    });
-
-    cartItems.value = [];
-    orderId.value = data.id;
-    return data;
-  } catch (error) {
-    console.log(error);
-  } finally {
-    isCreatingOrder.value = false;
-  }
-};
 </script>
 
 <template>
