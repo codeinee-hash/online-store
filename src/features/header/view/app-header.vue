@@ -1,4 +1,12 @@
-<script setup></script>
+<script setup>
+import { inject } from 'vue';
+
+defineProps({
+  totalPrice: Number,
+});
+
+const basketState = inject('basketState');
+</script>
 
 <template>
   <header class="flex items-center justify-between border-b border-b-slate-300 px-14 py-11">
@@ -11,9 +19,12 @@
     </div>
 
     <ul class="flex items-center gap-8">
-      <li class="flex items-center gap-2.5 text-gray-500 hover:text-black cursor-pointer">
+      <li
+        @click="basketState.openDrawer"
+        class="flex items-center gap-2.5 text-gray-500 hover:text-black cursor-pointer"
+      >
         <img src="/cart.svg" alt="cart" />
-        <b>1200 руб.</b>
+        <b>{{ totalPrice }} руб.</b>
       </li>
       <li class="flex items-center gap-2.5 text-gray-500 hover:text-black cursor-pointer">
         <img src="/heart.svg" alt="heart" />

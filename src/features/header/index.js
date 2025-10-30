@@ -1,1 +1,1 @@
-export { default as AppHeader } from './view/header.vue';
+export { default as AppAppHeader } from './view/app-header.vue';

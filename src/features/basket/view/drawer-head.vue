@@ -1,6 +1,13 @@
+<script setup>
+import { inject } from 'vue';
+
+const basketState = inject('basketState');
+</script>
+
 <template>
   <div class="flex items-center gap-4 mb-8">
     <svg
+      @click="basketState.closeDrawer"
       class="rotate-180 hover:-translate-x-1 opacity-30 hover:opacity-100 transition cursor-pointer"
       width="16"
       height="14"
