@@ -36,10 +36,12 @@ const basketState = inject('basketState');
         </li>
       </router-link>
 
-      <li class="flex items-center gap-2.5 text-gray-500 hover:text-black cursor-pointer">
-        <img src="/profile.svg" alt="profile" />
-        <span>Профиль</span>
-      </li>
+      <router-link to="/orders">
+        <li class="flex items-center gap-2.5 text-gray-500 hover:text-black cursor-pointer">
+          <img src="/profile.svg" alt="profile" />
+          <span>Покупки</span>
+        </li>
+      </router-link>
     </ul>
   </header>
 </template>
