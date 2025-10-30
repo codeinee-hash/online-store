@@ -1,27 +1,15 @@
 <script setup>
-import { onMounted, ref } from 'vue';
-import { requester } from '@/shared/lib/axios.js';
 import PageTitle from '@/shared/ui/page-title.vue';
 import { ProductCardList } from '@/features/products';
 import InfoBlock from '@/shared/ui/info-block.vue';
 import { useRouter } from 'vue-router';
-
-const orders = ref([]);
-const isPending = ref(false);
+import { onMounted } from 'vue';
+import { useOrders } from '@/features/products/model/use-orders.js';
 
 const router = useRouter();
+const { fetchOrders, isPending, orders } = useOrders();
 
-onMounted(async () => {
-  try {
-    isPending.value = true;
-    const { data } = await requester.get('/orders');
-    orders.value = data;
-  } catch (error) {
-    console.log(error);
-  } finally {
-    isPending.value = false;
-  }
-});
+onMounted(fetchOrders);
 </script>
 
 <template>
