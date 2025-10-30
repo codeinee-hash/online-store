@@ -1,27 +1,14 @@
 <script setup>
-import { onMounted, ref } from 'vue';
-import { requester } from '@/shared/lib/axios.js';
+import { onMounted } from 'vue';
 import PageTitle from '@/shared/ui/page-title.vue';
-import { ProductCardList } from '@/features/products';
+import { ProductCardList, useFavorites } from '@/features/products';
 import { useRouter } from 'vue-router';
 import InfoBlock from '@/shared/ui/info-block.vue';
 
-const favorites = ref([]);
-const isPending = ref(false);
-
 const router = useRouter();
+const { favorites, fetchFavorites, isPending } = useFavorites();
 
-onMounted(async () => {
-  try {
-    isPending.value = true;
-    const { data } = await requester.get('/favorites?_relations=products');
-    favorites.value = data.map((item) => item.product);
-  } catch (error) {
-    console.log(error);
-  } finally {
-    isPending.value = false;
-  }
-});
+onMounted(fetchFavorites);
 </script>
 
 <template>
