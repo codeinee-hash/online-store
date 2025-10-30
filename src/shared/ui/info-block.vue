@@ -11,6 +11,6 @@ defineProps({
     <img :src="image" :alt="title" width="100" height="100" />
     <h2 class="text-2xl font-semibold mb-2 mt-5">{{ title }}</h2>
     <p class="text-black/40 text-center">{{ subtitle }}</p>
-    <slot /><!-- button -->
+    <slot />
   </div>
 </template>

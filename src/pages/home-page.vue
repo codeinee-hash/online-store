@@ -1,90 +1,23 @@
 <script setup>
-import { inject, onMounted, reactive, ref, watch } from 'vue';
-import { ProductCardList } from '@/features/products/index.js';
+import { inject, onMounted, watch } from 'vue';
+import {
+  ProductCardList,
+  useProductActions,
+  useProductFilters,
+  useProducts,
+} from '@/features/products';
 import PageTitle from '@/shared/ui/page-title.vue';
-import { requester } from '@/shared/lib/axios.js';
-import { debounce } from '@/shared/lib/debounce.js';
 
-const products = ref([]);
-const isPending = ref(false);
-const filters = reactive({
-  sortBy: 'title',
-  searchQuery: '',
-});
+const { cartItems } = inject('basketState');
 
-const { addToCart, removeFromCart, cartItems } = inject('basketState');
-
-const addToFavorite = async (item) => {
-  try {
-    if (!item.isFavorite) {
-      const { data } = await requester.post('favorites', { product_id: item.id });
-      item.favoriteId = data.id;
-      item.isFavorite = true;
-    } else {
-      await requester.delete(`favorites/${item.favoriteId}`);
-      item.favoriteId = null;
-      item.isFavorite = false;
-    }
-  } catch (error) {
-    console.log(error);
-  }
-};
-
-const onClickAdd = (item) => {
-  if (!item.isAdded) addToCart(item);
-  else removeFromCart(item);
-};
-
-const fetchFavoriteProducts = async () => {
-  try {
-    const { data } = await requester.get('favorites');
-    products.value = products.value.map((product) => {
-      const favorite = data.find((f) => f.product_id === product.id);
-
-      if (!favorite) return product;
-
-      return {
-        ...product,
-        isFavorite: true,
-        favoriteId: favorite.id,
-      };
-    });
-  } catch (error) {
-    console.log(error);
-  }
-};
-
-const fetchProducts = async () => {
-  try {
-    isPending.value = true;
-    const params = {
-      sortBy: filters.sortBy,
-    };
-
-    if (filters.searchQuery) {
-      params.title = `*${filters.searchQuery}*`;
-    }
-
-    const { data } = await requester.get('products', { params });
-    products.value = data.map((product) => ({
-      ...product,
-      isAdded: false,
-      isFavorite: false,
-      favoriteId: null,
-    }));
-  } catch (error) {
-    console.log(error);
-  } finally {
-    isPending.value = false;
-  }
-};
+const { products, isPending, loadProducts, syncWithFavorites } = useProducts();
+const { filters, onChangeSelect, onChangeSearchInput } = useProductFilters(loadProducts);
+const { addToCart, removeFromCart, syncWithLocalStorage, addToFavorite } =
+  useProductActions(cartItems);
 
 onMounted(async () => {
-  const localCartItems = localStorage.getItem('cartItems');
-  cartItems.value = localCartItems ? JSON.parse(localCartItems) : [];
-
-  await fetchProducts();
-  await fetchFavoriteProducts();
+  syncWithLocalStorage();
+  await loadProducts({ sortBy: filters.sortBy });
 
   products.value = products.value.map((product) => ({
     ...product,
@@ -92,14 +25,21 @@ onMounted(async () => {
   }));
 });
 
-watch(filters, fetchProducts);
+watch(cartItems, () => {
+  products.value = products.value.map((item) => ({
+    ...item,
+    isAdded: cartItems.value.some((cartItem) => cartItem.id === item.id),
+  }));
+});
+
 watch(
-  cartItems,
-  () => (products.value = products.value.map((item) => ({ ...item, isAdded: false }))),
+  () => products.value.map((p) => p.isFavorite),
+  () => syncWithFavorites(),
+  { deep: true },
 );
 
-const onChangeSelect = (e) => (filters.sortBy = e.target.value);
-const onChangeSearchInput = debounce((e) => (filters.searchQuery = e.target.value), 400);
+const onClickAdd = (item) => (item.isAdded ? removeFromCart(item) : addToCart(item));
+const onAddToFavorite = (item) => addToFavorite(item, products);
 </script>
 
 <template>
@@ -135,7 +75,7 @@ const onChangeSearchInput = debounce((e) => (filters.searchQuery = e.target.valu
   <product-card-list
     v-else
     :products="products"
-    @add-to-favorite="addToFavorite"
+    @add-to-favorite="onAddToFavorite"
     @add-to-cart="onClickAdd"
   />
 </template>

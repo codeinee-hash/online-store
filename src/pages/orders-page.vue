@@ -1,10 +1,9 @@
 <script setup>
 import PageTitle from '@/shared/ui/page-title.vue';
-import { ProductCardList } from '@/features/products';
+import { ProductCardList, useOrders } from '@/features/products';
 import InfoBlock from '@/shared/ui/info-block.vue';
 import { useRouter } from 'vue-router';
 import { onMounted } from 'vue';
-import { useOrders } from '@/features/products/model/use-orders.js';
 
 const router = useRouter();
 const { fetchOrders, isPending, orders } = useOrders();
